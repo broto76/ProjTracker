@@ -43,17 +43,22 @@ class FireStoreClass private constructor() {
             }
     }
 
-    fun getSignInUserData(activity: SigninActivity) {
+    fun getSignInUserData(callback: SignedInUserDetailsUpdate) {
         mFirestore.collection(Constants.USERS).document(getCurrentUserId()).get()
             .addOnSuccessListener { document ->
                 val user = document.toObject(User::class.java)
-                activity.userLoginSuccess(user)
+                callback.onUserLoginSuccess(user)
             }
             .addOnFailureListener {
                 Log.e(TAG, "Unable fetch user data from FireStore. Error: ${it.message}")
-                activity.userLoginFailed()
+                callback.onUserLoginFailed()
             }
 
+    }
+
+    interface SignedInUserDetailsUpdate {
+        fun onUserLoginSuccess(user: User?)
+        fun onUserLoginFailed()
     }
 
 }

@@ -11,7 +11,7 @@ import com.broto.projtracker.models.User
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_signin.*
 
-class SigninActivity : BaseActivity() {
+class SigninActivity : BaseActivity(), FireStoreClass.SignedInUserDetailsUpdate {
 
     private val TAG = "SigninActivity"
     private lateinit var auth: FirebaseAuth
@@ -85,7 +85,7 @@ class SigninActivity : BaseActivity() {
 
     }
 
-    fun userLoginSuccess(user: User?) {
+    override fun onUserLoginSuccess(user: User?) {
         hideProgressDialog()
 
         if (user == null) {
@@ -98,10 +98,9 @@ class SigninActivity : BaseActivity() {
 
         startActivity(Intent(this@SigninActivity, MainActivity::class.java))
         finish()
-
     }
 
-    fun userLoginFailed() {
+    override fun onUserLoginFailed() {
         et_sign_in_email.setText("")
         et_sign_in_password.setText("")
         hideProgressDialog()

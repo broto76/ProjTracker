@@ -8,12 +8,18 @@ import android.view.MenuItem
 import android.widget.Toast
 import androidx.core.view.GravityCompat
 import com.broto.projtracker.R
+import com.broto.projtracker.firebase.FireStoreClass
+import com.broto.projtracker.models.User
+import com.bumptech.glide.Glide
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
+import kotlinx.android.synthetic.main.nav_header_main.*
 
-class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
+class MainActivity : BaseActivity(),
+    NavigationView.OnNavigationItemSelectedListener,
+    FireStoreClass.SignedInUserDetailsUpdate {
 
     private val TAG = "MainActivity"
 
@@ -23,6 +29,8 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
 
         setUpActionBar()
         main_nav_view.setNavigationItemSelectedListener(this)
+
+        FireStoreClass.getInstance().getSignInUserData(this)
     }
 
     private fun setUpActionBar() {
@@ -75,5 +83,26 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
             main_drawer_layout.closeDrawer(GravityCompat.START)
         }
         return true
+    }
+
+    override fun onUserLoginSuccess(user: User?) {
+        if (user == null) {
+            Log.e(TAG, "User Details not found for " +
+                    "${FirebaseAuth.getInstance().currentUser?.uid}")
+            return
+        }
+
+        Glide.with(this)
+            .load(user.imageData)
+            .centerCrop()
+            .placeholder(R.drawable.ic_user_place_holder)
+            .into(nav_header_user_image)
+
+        nav_header_tv_username.text = user.name
+    }
+
+    override fun onUserLoginFailed() {
+        Log.e(TAG, "Unable fetch user details for UUID: " +
+                "${FirebaseAuth.getInstance().currentUser?.uid}")
     }
 }
