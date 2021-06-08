@@ -41,7 +41,7 @@ open class BaseActivity : AppCompatActivity() {
 
     fun doubleBackPressed() {
         if (mBackPressed) {
-            onBackPressed()
+            finish()
             return
         }
 
