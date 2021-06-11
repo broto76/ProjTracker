@@ -27,6 +27,10 @@ class MainActivity : BaseActivity(),
 
         setUpActionBar()
         main_nav_view.setNavigationItemSelectedListener(this)
+
+        fab_create_board.setOnClickListener {
+            startActivity(Intent(this@MainActivity, CreateBoardActivity::class.java))
+        }
     }
 
     override fun onResume() {

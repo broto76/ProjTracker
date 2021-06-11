@@ -6,12 +6,11 @@ import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Log
-import android.webkit.MimeTypeMap
 import android.widget.Toast
 import com.broto.projtracker.R
+import com.broto.projtracker.firebase.FireStorage
 import com.broto.projtracker.firebase.FireStoreClass
 import com.broto.projtracker.models.User
 import com.broto.projtracker.utils.Constants
@@ -29,12 +28,9 @@ import java.lang.Exception
 
 class ProfileActivity :
     BaseActivity(),
+    FireStorage.OnFileUploadCallback,
     FireStoreClass.SignedInUserDetails,
     FireStoreClass.UpdateUserDetails {
-
-    companion object {
-        private const val PICK_IMAGE_REQUEST_CODE = 1
-    }
 
     private val TAG = "ProfileActivity"
 
@@ -56,7 +52,7 @@ class ProfileActivity :
                 .withListener(object : PermissionListener {
                     override fun onPermissionGranted(p0: PermissionGrantedResponse?) {
                         // Permission Available
-                        showImagePicker()
+                        Constants.showImagePicker(this@ProfileActivity)
                     }
 
                     override fun onPermissionDenied(p0: PermissionDeniedResponse?) {
@@ -77,17 +73,19 @@ class ProfileActivity :
 
         profile_btn_update.setOnClickListener {
             if (mSelectedImageUri != null) {
-                uploadUserImage()
+                //uploadUserImage()
+                showProgressDialog(resources.getString(R.string.please_wait))
+                FireStorage.getInstance().uploadFileToFirebase(
+                    FireStoreClass.getInstance().getCurrentUserId(),
+                    mSelectedImageUri!!,
+                    contentResolver,
+                    this
+                )
             } else {
                 showProgressDialog(resources.getString(R.string.please_wait))
                 updateUserProfileRemote()
             }
         }
-    }
-
-    private fun showImagePicker() {
-        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        startActivityForResult(intent, PICK_IMAGE_REQUEST_CODE)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -99,7 +97,7 @@ class ProfileActivity :
         }
 
         when(requestCode) {
-            PICK_IMAGE_REQUEST_CODE -> {
+            Constants.PICK_IMAGE_REQUEST_CODE -> {
                 if (data?.data == null) {
                     Log.e(TAG, "No data found for request code: $requestCode")
                     return
@@ -178,55 +176,6 @@ class ProfileActivity :
                 "${FirebaseAuth.getInstance().currentUser?.uid}")
     }
 
-    private fun getFileExtension(uri: Uri): String? {
-        return MimeTypeMap.getSingleton().getExtensionFromMimeType(contentResolver.getType(uri))
-    }
-
-    private fun uploadUserImage() {
-        showProgressDialog(resources.getString(R.string.please_wait))
-        val uuid = FireStoreClass.getInstance().getCurrentUserId()
-        if (uuid.isEmpty()) {
-            Log.e(TAG, "User details not found")
-            return
-        }
-
-        // ImageName format: <uuid_timestamp.ext>
-
-        if (mSelectedImageUri != null) {
-            val sRef = FirebaseStorage.getInstance().reference.child(
-                "${uuid}_${System.currentTimeMillis()}.${getFileExtension(mSelectedImageUri!!)}"
-            )
-            sRef.putFile(mSelectedImageUri!!).addOnSuccessListener { taskSnapshot ->
-
-                taskSnapshot.metadata?.reference?.downloadUrl?.addOnSuccessListener {
-                    Log.d(TAG, "Uploaded Image URI: $it")
-                    mRemoteImageUri = it
-                    updateUserProfileRemote()
-                }
-                ?.addOnCanceledListener {
-                    hideProgressDialog()
-                    showErrorSnackBar(resources.getString(R.string.failed_to_upload_file))
-                    Log.e(TAG, "File Upload cancelled")
-                }
-                ?.addOnFailureListener{
-                    hideProgressDialog()
-                    showErrorSnackBar(resources.getString(R.string.failed_to_upload_file))
-                    Log.e(TAG,"Failed to upload user image. Exception: ${it.message}")
-                }
-            }
-            .addOnCanceledListener {
-                hideProgressDialog()
-                showErrorSnackBar(resources.getString(R.string.failed_to_upload_file))
-                Log.e(TAG, "File Upload cancelled")
-            }
-            .addOnFailureListener {
-                hideProgressDialog()
-                showErrorSnackBar(resources.getString(R.string.failed_to_upload_file))
-                Log.e(TAG,"Failed to upload user image. Exception: ${it.message}")
-            }
-        }
-    }
-
     override fun onUpdateSuccess() {
         Log.d(TAG,"Details updated for uuid: ${FirebaseAuth.getInstance().currentUser?.uid}")
         hideProgressDialog()
@@ -246,7 +195,7 @@ class ProfileActivity :
 
     private fun updateUserProfileRemote() {
         var flag = false
-        var userHashMap = HashMap<String, Any>()
+        val userHashMap = HashMap<String, Any>()
         if (mRemoteImageUri.toString().isNotEmpty() &&
                 mRemoteImageUri.toString() != mCurrentUser.imageData) {
             userHashMap[Constants.IMAGE_DATA] = mRemoteImageUri.toString()
@@ -274,5 +223,16 @@ class ProfileActivity :
             ).show()
             finish()
         }
+    }
+
+    override fun onFileUploadSuccess(uri: Uri) {
+        hideProgressDialog()
+        mRemoteImageUri = uri
+        updateUserProfileRemote()
+    }
+
+    override fun onFileUploadFailed() {
+        hideProgressDialog()
+        showErrorSnackBar(resources.getString(R.string.failed_to_upload_file))
     }
 }

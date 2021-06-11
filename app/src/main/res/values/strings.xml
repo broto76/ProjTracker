@@ -24,7 +24,7 @@
     <string name="update">UPDATE</string>
     <string name="my_profile">My Profile</string>
 
-    <string name="read_external_denied_message">Cannot Update Profile Picture without access to external storage</string>
+    <string name="read_external_denied_message">Cannot update Picture without access to external storage</string>
     <string name="permission_rationale_dialog_title">It looks you have turned off permission required for this feature.
         It can be enabled from Application Settings.</string>
     <string name="permission_rationale_dialog_positive_button">Go to settings</string>
