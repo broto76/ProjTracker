@@ -1,11 +1,9 @@
 package com.broto.projtracker.activities
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
-import android.widget.Toast
 import androidx.core.view.GravityCompat
 import com.broto.projtracker.R
 import com.broto.projtracker.firebase.FireStoreClass
@@ -19,7 +17,7 @@ import kotlinx.android.synthetic.main.nav_header_main.*
 
 class MainActivity : BaseActivity(),
     NavigationView.OnNavigationItemSelectedListener,
-    FireStoreClass.SignedInUserDetailsUpdate {
+    FireStoreClass.SignedInUserDetails {
 
     private val TAG = "MainActivity"
 
@@ -29,8 +27,11 @@ class MainActivity : BaseActivity(),
 
         setUpActionBar()
         main_nav_view.setNavigationItemSelectedListener(this)
+    }
 
-        FireStoreClass.getInstance().getSignInUserData(this)
+    override fun onResume() {
+        super.onResume()
+        FireStoreClass.getInstance().getCurrentUserData(this)
     }
 
     private fun setUpActionBar() {
@@ -61,11 +62,8 @@ class MainActivity : BaseActivity(),
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when(item.itemId) {
             R.id.nav_menu_my_profile -> {
-                Toast.makeText(
-                    this@MainActivity,
-                    "My Profile",
-                    Toast.LENGTH_SHORT
-                ).show()
+                val intent = Intent(this@MainActivity, ProfileActivity::class.java)
+                startActivity(intent)
             }
             R.id.nav_menu_signout -> {
                 Log.d(TAG, "Sign Out User: ${FirebaseAuth.getInstance().currentUser?.uid}")
@@ -85,7 +83,7 @@ class MainActivity : BaseActivity(),
         return true
     }
 
-    override fun onUserLoginSuccess(user: User?) {
+    override fun onFetchDetailsSuccess(user: User?) {
         if (user == null) {
             Log.e(TAG, "User Details not found for " +
                     "${FirebaseAuth.getInstance().currentUser?.uid}")
@@ -101,7 +99,7 @@ class MainActivity : BaseActivity(),
         nav_header_tv_username.text = user.name
     }
 
-    override fun onUserLoginFailed() {
+    override fun onFetchDetailsFailed() {
         Log.e(TAG, "Unable fetch user details for UUID: " +
                 "${FirebaseAuth.getInstance().currentUser?.uid}")
     }

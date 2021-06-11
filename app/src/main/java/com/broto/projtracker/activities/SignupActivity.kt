@@ -1,6 +1,5 @@
 package com.broto.projtracker.activities
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.WindowManager
@@ -9,7 +8,6 @@ import com.broto.projtracker.R
 import com.broto.projtracker.firebase.FireStoreClass
 import com.broto.projtracker.models.User
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.activity_signup.*
 
 class SignupActivity : BaseActivity() {
@@ -29,7 +27,7 @@ class SignupActivity : BaseActivity() {
     private fun setUpActionBar() {
         setSupportActionBar(toolbar_sign_up_activity)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_black_color_24dp)
+        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_back_black_color_24dp)
 
         toolbar_sign_up_activity.setNavigationOnClickListener {
             onBackPressed()

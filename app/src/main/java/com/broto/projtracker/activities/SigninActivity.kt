@@ -11,7 +11,7 @@ import com.broto.projtracker.models.User
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_signin.*
 
-class SigninActivity : BaseActivity(), FireStoreClass.SignedInUserDetailsUpdate {
+class SigninActivity : BaseActivity(), FireStoreClass.SignedInUserDetails {
 
     private val TAG = "SigninActivity"
     private lateinit var auth: FirebaseAuth
@@ -34,7 +34,7 @@ class SigninActivity : BaseActivity(), FireStoreClass.SignedInUserDetailsUpdate 
     private fun setUpActionBar() {
         setSupportActionBar(toolbar_sign_in_activity)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_black_color_24dp)
+        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_back_black_color_24dp)
 
         toolbar_sign_in_activity.setNavigationOnClickListener {
             onBackPressed()
@@ -72,7 +72,7 @@ class SigninActivity : BaseActivity(), FireStoreClass.SignedInUserDetailsUpdate 
             if (task.isSuccessful) {
                 val user = auth.currentUser
                 Log.d(TAG, "Sign In success ${user?.email}")
-                FireStoreClass.getInstance().getSignInUserData(this)
+                FireStoreClass.getInstance().getCurrentUserData(this)
 
             } else {
                 et_sign_in_email.setText("")
@@ -85,7 +85,7 @@ class SigninActivity : BaseActivity(), FireStoreClass.SignedInUserDetailsUpdate 
 
     }
 
-    override fun onUserLoginSuccess(user: User?) {
+    override fun onFetchDetailsSuccess(user: User?) {
         hideProgressDialog()
 
         if (user == null) {
@@ -100,7 +100,7 @@ class SigninActivity : BaseActivity(), FireStoreClass.SignedInUserDetailsUpdate 
         finish()
     }
 
-    override fun onUserLoginFailed() {
+    override fun onFetchDetailsFailed() {
         et_sign_in_email.setText("")
         et_sign_in_password.setText("")
         hideProgressDialog()

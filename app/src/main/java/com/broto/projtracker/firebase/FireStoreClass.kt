@@ -1,7 +1,6 @@
 package com.broto.projtracker.firebase
 
 import android.util.Log
-import com.broto.projtracker.activities.SigninActivity
 import com.broto.projtracker.activities.SignupActivity
 import com.broto.projtracker.models.User
 import com.broto.projtracker.utils.Constants
@@ -43,22 +42,40 @@ class FireStoreClass private constructor() {
             }
     }
 
-    fun getSignInUserData(callback: SignedInUserDetailsUpdate) {
+    fun getCurrentUserData(callback: SignedInUserDetails) {
         mFirestore.collection(Constants.USERS).document(getCurrentUserId()).get()
             .addOnSuccessListener { document ->
                 val user = document.toObject(User::class.java)
-                callback.onUserLoginSuccess(user)
+                callback.onFetchDetailsSuccess(user)
             }
             .addOnFailureListener {
                 Log.e(TAG, "Unable fetch user data from FireStore. Error: ${it.message}")
-                callback.onUserLoginFailed()
+                callback.onFetchDetailsFailed()
             }
 
     }
 
-    interface SignedInUserDetailsUpdate {
-        fun onUserLoginSuccess(user: User?)
-        fun onUserLoginFailed()
+    fun updateUserProfile(callback: UpdateUserDetails, userHashMap: HashMap<String, Any>) {
+        mFirestore.collection(Constants.USERS).document(getCurrentUserId())
+            .update(userHashMap)
+            .addOnSuccessListener {
+                Log.d(TAG,"Profile details updated successfully")
+                callback.onUpdateSuccess()
+            }
+            .addOnFailureListener {
+                Log.d(TAG,"Profile details updated failed: ${it.message}")
+                callback.onUpdateFailed()
+            }
+    }
+
+    interface SignedInUserDetails {
+        fun onFetchDetailsSuccess(user: User?)
+        fun onFetchDetailsFailed()
+    }
+
+    interface UpdateUserDetails {
+        fun onUpdateSuccess()
+        fun onUpdateFailed()
     }
 
 }

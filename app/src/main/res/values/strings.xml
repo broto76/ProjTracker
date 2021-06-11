@@ -24,6 +24,16 @@
     <string name="update">UPDATE</string>
     <string name="my_profile">My Profile</string>
 
+    <string name="read_external_denied_message">Cannot Update Profile Picture without access to external storage</string>
+    <string name="permission_rationale_dialog_title">It looks you have turned off permission required for this feature.
+        It can be enabled from Application Settings.</string>
+    <string name="permission_rationale_dialog_positive_button">Go to settings</string>
+    <string name="permission_rationale_dialog_negative_button">Cancel</string>
+
+    <string name="failed_to_upload_file">Failed to upload file</string>
+    <string name="failed_to_update_user_details">Failed to update profile</string>
+    <string name="no_details_updated">Profile details saved!</string>
+
     <string name="create_board_title">Create Board</string>
     <string name="create">CREATE</string>
     <string name="board_name">Board Name</string>
