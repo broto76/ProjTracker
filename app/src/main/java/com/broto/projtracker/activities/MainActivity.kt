@@ -8,6 +8,7 @@ import androidx.core.view.GravityCompat
 import com.broto.projtracker.R
 import com.broto.projtracker.firebase.FireStoreClass
 import com.broto.projtracker.models.User
+import com.broto.projtracker.utils.Constants
 import com.bumptech.glide.Glide
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
@@ -20,6 +21,7 @@ class MainActivity : BaseActivity(),
     FireStoreClass.SignedInUserDetails {
 
     private val TAG = "MainActivity"
+    private lateinit var mUsername: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,7 +31,14 @@ class MainActivity : BaseActivity(),
         main_nav_view.setNavigationItemSelectedListener(this)
 
         fab_create_board.setOnClickListener {
-            startActivity(Intent(this@MainActivity, CreateBoardActivity::class.java))
+            if (!this::mUsername.isInitialized) {
+                Log.e(TAG, "User details not available. Abort")
+                showErrorSnackBar(resources.getString(R.string.cannot_create_board))
+                return@setOnClickListener
+            }
+            val intent = Intent(this@MainActivity, CreateBoardActivity::class.java)
+            intent.putExtra(Constants.EXTRA_USERNAME, mUsername)
+            startActivity(intent)
         }
     }
 
@@ -93,6 +102,8 @@ class MainActivity : BaseActivity(),
                     "${FirebaseAuth.getInstance().currentUser?.uid}")
             return
         }
+
+        mUsername = user.name
 
         Glide.with(this)
             .load(user.imageData)

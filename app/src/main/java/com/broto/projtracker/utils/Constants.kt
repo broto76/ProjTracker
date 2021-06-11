@@ -9,11 +9,14 @@ import android.webkit.MimeTypeMap
 
 object Constants {
 
-    const val USERS: String = "users"
+    const val COLLECTION_USERS: String = "users"
+    const val COLLECTION_BOARDS: String = "boards"
 
     const val IMAGE_DATA = "imageData"
     const val NAME = "name"
     const val MOBILE = "mobile"
+
+    const val EXTRA_USERNAME = "extra_username"
 
     const val PICK_IMAGE_REQUEST_CODE = 1
 

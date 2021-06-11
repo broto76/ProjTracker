@@ -2,6 +2,7 @@ package com.broto.projtracker.firebase
 
 import android.util.Log
 import com.broto.projtracker.activities.SignupActivity
+import com.broto.projtracker.models.Board
 import com.broto.projtracker.models.User
 import com.broto.projtracker.utils.Constants
 import com.google.firebase.auth.FirebaseAuth
@@ -31,7 +32,7 @@ class FireStoreClass private constructor() {
     }
 
     fun registerUser(activity: SignupActivity, userInfo: User) {
-        mFirestore.collection(Constants.USERS)
+        mFirestore.collection(Constants.COLLECTION_USERS)
             .document(getCurrentUserId()).set(userInfo, SetOptions.merge())
             .addOnSuccessListener {
                 activity.userRegisteredSuccess()
@@ -43,7 +44,7 @@ class FireStoreClass private constructor() {
     }
 
     fun getCurrentUserData(callback: SignedInUserDetails) {
-        mFirestore.collection(Constants.USERS).document(getCurrentUserId()).get()
+        mFirestore.collection(Constants.COLLECTION_USERS).document(getCurrentUserId()).get()
             .addOnSuccessListener { document ->
                 val user = document.toObject(User::class.java)
                 callback.onFetchDetailsSuccess(user)
@@ -56,7 +57,7 @@ class FireStoreClass private constructor() {
     }
 
     fun updateUserProfile(callback: UpdateUserDetails, userHashMap: HashMap<String, Any>) {
-        mFirestore.collection(Constants.USERS).document(getCurrentUserId())
+        mFirestore.collection(Constants.COLLECTION_USERS).document(getCurrentUserId())
             .update(userHashMap)
             .addOnSuccessListener {
                 Log.d(TAG,"Profile details updated successfully")
@@ -68,6 +69,22 @@ class FireStoreClass private constructor() {
             }
     }
 
+    fun createBoard(callback: CreateBoardCallbacks, board: Board) {
+        mFirestore.collection(Constants.COLLECTION_BOARDS)
+            .document()
+            .set(board, SetOptions.merge())
+            .addOnSuccessListener {
+                Log.d(TAG, "Board created successfully")
+                callback.onBoardCreateSuccess()
+            }.addOnCanceledListener {
+                Log.d(TAG, "Board creation failed")
+                callback.onBoardCreateFailed()
+            }.addOnFailureListener {
+                Log.d(TAG, "Board creation failed. Error: ${it.message}")
+                callback.onBoardCreateFailed()
+            }
+    }
+
     interface SignedInUserDetails {
         fun onFetchDetailsSuccess(user: User?)
         fun onFetchDetailsFailed()
@@ -76,6 +93,11 @@ class FireStoreClass private constructor() {
     interface UpdateUserDetails {
         fun onUpdateSuccess()
         fun onUpdateFailed()
+    }
+
+    interface CreateBoardCallbacks {
+        fun onBoardCreateSuccess()
+        fun onBoardCreateFailed()
     }
 
 }

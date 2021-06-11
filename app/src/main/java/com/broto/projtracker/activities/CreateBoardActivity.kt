@@ -8,6 +8,9 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import com.broto.projtracker.R
+import com.broto.projtracker.firebase.FireStorage
+import com.broto.projtracker.firebase.FireStoreClass
+import com.broto.projtracker.models.Board
 import com.broto.projtracker.utils.Constants
 import com.bumptech.glide.Glide
 import com.karumi.dexter.Dexter
@@ -19,17 +22,61 @@ import com.karumi.dexter.listener.single.PermissionListener
 import kotlinx.android.synthetic.main.activity_create_board.*
 import java.lang.Exception
 
-class CreateBoardActivity : BaseActivity() {
+class CreateBoardActivity : BaseActivity(),
+    FireStorage.OnFileUploadCallback,
+    FireStoreClass.CreateBoardCallbacks {
 
     private val TAG = "CreateBoardActivity"
 
     private var mSelectedImageUri: Uri? = null
+    private lateinit var mUsername: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_board)
 
+        if (intent.hasExtra(Constants.EXTRA_USERNAME)) {
+            mUsername = intent.getStringExtra(Constants.EXTRA_USERNAME)?:""
+            if (mUsername.isEmpty()) {
+                Log.e(TAG, "Cannot find current username. Abort")
+                finish()
+                return
+            }
+        } else {
+            Log.e(TAG, "Cannot find current username. Abort")
+            finish()
+            return
+        }
+
         setupActionBar()
+    }
+
+    fun onSubmitClickedListener(view: View) {
+        if (et_create_board_name.text.toString().isEmpty()) {
+            showErrorSnackBar("Please Enter a Board Name")
+            return
+        }
+
+        showProgressDialog(resources.getString(R.string.please_wait))
+
+        if (mSelectedImageUri != null) {
+            FireStorage.getInstance().uploadFileToFirebase(
+                FireStoreClass.getInstance().getCurrentUserId(),
+                mSelectedImageUri!!,
+                contentResolver,
+                this
+            )
+        } else {
+            FireStoreClass.getInstance().createBoard(
+                this,
+                Board(
+                    et_create_board_name.text.toString(),
+                    "",
+                    mUsername,
+                    arrayListOf(getCurrentUserId())
+                )
+            )
+        }
     }
 
     fun onImageClickedListener(view: View) {
@@ -96,5 +143,37 @@ class CreateBoardActivity : BaseActivity() {
         toolbar_create_board_activity.setNavigationOnClickListener {
             onBackPressed()
         }
+    }
+
+    override fun onFileUploadSuccess(uri: Uri) {
+        Log.d(TAG, "Board image uploaded")
+        // Update the database
+        FireStoreClass.getInstance().createBoard(
+            this,
+            Board(
+                et_create_board_name.text.toString(),
+                uri.toString(),
+                mUsername,
+                arrayListOf(getCurrentUserId())
+            )
+        )
+    }
+
+    override fun onFileUploadFailed() {
+        Log.d(TAG, "Cannot upload board image")
+        hideProgressDialog()
+        showErrorSnackBar("Cannot upload board image")
+    }
+
+    override fun onBoardCreateSuccess() {
+        Log.d(TAG, "Board created successfully")
+        hideProgressDialog()
+        finish()
+    }
+
+    override fun onBoardCreateFailed() {
+        Log.d(TAG, "Board creation failed")
+        hideProgressDialog()
+        showErrorSnackBar(resources.getString(R.string.cannot_create_board))
     }
 }

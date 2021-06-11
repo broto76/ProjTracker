@@ -85,6 +85,7 @@
                     android:text="@string/create"
                     android:textColor="@android:color/white"
                     android:textSize="@dimen/btn_text_size"
+                    android:onClick="onSubmitClickedListener"
                     />
 
             </LinearLayout>
