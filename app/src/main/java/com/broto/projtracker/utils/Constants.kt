@@ -16,6 +16,8 @@ object Constants {
     const val NAME = "name"
     const val MOBILE = "mobile"
 
+    const val BOARD_ASSIGNED_TO_KEY = "assignedTo"
+
     const val EXTRA_USERNAME = "extra_username"
 
     const val PICK_IMAGE_REQUEST_CODE = 1

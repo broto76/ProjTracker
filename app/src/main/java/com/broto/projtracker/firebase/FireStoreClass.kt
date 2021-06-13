@@ -85,6 +85,35 @@ class FireStoreClass private constructor() {
             }
     }
 
+    fun getAllBoardsList(callback: GetDataFromFirebaseCallbacks) {
+        mFirestore.collection(Constants.COLLECTION_BOARDS)
+            .whereArrayContains(Constants.BOARD_ASSIGNED_TO_KEY, getCurrentUserId())
+            .get()
+            .addOnSuccessListener {
+                Log.d(TAG, "Response: ${it.documents}")
+                val boards = ArrayList<Board>()
+                for (item in it.documents) {
+                    val board = item.toObject(Board::class.java)
+                    if (board == null) {
+                        Log.e(TAG, "Unable to typecast/add board id: ${item.id}")
+                        continue
+                    }
+                    board.id = item.id
+                    boards.add(board)
+                }
+                Log.d(TAG, "Board list is parsed and available")
+                callback.onDataAvailable(boards)
+            }
+            .addOnFailureListener {
+                Log.e(TAG, "Failed to fetch board list from Firebase")
+                callback.onDataFetchFailed()
+            }
+            .addOnCanceledListener {
+                Log.e(TAG, "Cancelled operation to fetch board list from Firebase")
+                callback.onDataFetchFailed()
+            }
+    }
+
     interface SignedInUserDetails {
         fun onFetchDetailsSuccess(user: User?)
         fun onFetchDetailsFailed()
@@ -98,6 +127,11 @@ class FireStoreClass private constructor() {
     interface CreateBoardCallbacks {
         fun onBoardCreateSuccess()
         fun onBoardCreateFailed()
+    }
+
+    interface GetDataFromFirebaseCallbacks {
+        fun onDataAvailable(boardList: ArrayList<Board>)
+        fun onDataFetchFailed()
     }
 
 }

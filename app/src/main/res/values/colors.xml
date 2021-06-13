@@ -7,4 +7,7 @@
     <color name="primaryTextColor">#363A43</color>
     <color name="secondaryTextColor">#7A8089</color>
     <color name="snackbar_error_color">#F72400</color>
+
+    <color name="divider_color">#2C2929</color>
+
 </resources>

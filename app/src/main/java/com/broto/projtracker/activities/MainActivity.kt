@@ -4,24 +4,31 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
+import android.view.View
 import androidx.core.view.GravityCompat
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.broto.projtracker.R
+import com.broto.projtracker.adapters.BoardItemsAdapter
 import com.broto.projtracker.firebase.FireStoreClass
+import com.broto.projtracker.models.Board
 import com.broto.projtracker.models.User
 import com.broto.projtracker.utils.Constants
 import com.bumptech.glide.Glide
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_main_content.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 import kotlinx.android.synthetic.main.nav_header_main.*
 
 class MainActivity : BaseActivity(),
     NavigationView.OnNavigationItemSelectedListener,
+    FireStoreClass.GetDataFromFirebaseCallbacks,
     FireStoreClass.SignedInUserDetails {
 
     private val TAG = "MainActivity"
     private lateinit var mUsername: String
+    private lateinit var mBoardListAdapter: BoardItemsAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,7 +51,28 @@ class MainActivity : BaseActivity(),
 
     override fun onResume() {
         super.onResume()
+        FireStoreClass.getInstance().getAllBoardsList(this)
         FireStoreClass.getInstance().getCurrentUserData(this)
+    }
+
+    private fun populateBoardListRecyclerView(boardList: ArrayList<Board>) {
+        Log.d(TAG, "Board List Size: ${boardList.size}")
+        hideProgressDialog()
+
+        if (boardList.isEmpty()) {
+            rv_main_boards_list.visibility = View.GONE
+            tv_main_no_boards.visibility = View.VISIBLE
+        } else {
+            rv_main_boards_list.visibility = View.VISIBLE
+            tv_main_no_boards.visibility = View.GONE
+
+            mBoardListAdapter = BoardItemsAdapter(this, boardList)
+
+            rv_main_boards_list.adapter = mBoardListAdapter
+
+            rv_main_boards_list.layoutManager = LinearLayoutManager(this)
+            rv_main_boards_list.setHasFixedSize(true)
+        }
     }
 
     private fun setUpActionBar() {
@@ -117,5 +145,17 @@ class MainActivity : BaseActivity(),
     override fun onFetchDetailsFailed() {
         Log.e(TAG, "Unable fetch user details for UUID: " +
                 "${FirebaseAuth.getInstance().currentUser?.uid}")
+    }
+
+    override fun onDataAvailable(boardList: ArrayList<Board>) {
+        Log.d(TAG, "Board List Retrieved")
+        hideProgressDialog()
+        populateBoardListRecyclerView(boardList)
+    }
+
+    override fun onDataFetchFailed() {
+        Log.d(TAG, "Cannot fetch board details")
+        hideProgressDialog()
+        showErrorSnackBar("Unable to fetch board details")
     }
 }

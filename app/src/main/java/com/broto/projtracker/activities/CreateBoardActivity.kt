@@ -70,6 +70,7 @@ class CreateBoardActivity : BaseActivity(),
             FireStoreClass.getInstance().createBoard(
                 this,
                 Board(
+                    "",
                     et_create_board_name.text.toString(),
                     "",
                     mUsername,
@@ -151,6 +152,7 @@ class CreateBoardActivity : BaseActivity(),
         FireStoreClass.getInstance().createBoard(
             this,
             Board(
+                "",
                 et_create_board_name.text.toString(),
                 uri.toString(),
                 mUsername,

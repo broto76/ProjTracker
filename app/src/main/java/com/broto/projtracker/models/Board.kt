@@ -5,6 +5,7 @@ import kotlinx.android.parcel.Parcelize
 
 @Parcelize
 data class Board (
+    var id: String = "",
     val name: String = "",
     val imageData: String = "",
     val createdBy: String = "",
